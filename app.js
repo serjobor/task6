@@ -7,33 +7,37 @@ export default function (express, bodyParser, createReadStream, crypto, http) {
   app.use((req, res, next) => {
     res.set({
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,OPTIONS,DELETE'
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,OPTIONS,DELETE',
+      'Access-Control-Allow-Headers': '*'
     })
-    if (!req.path.endsWith('/')) {
-      res.redirect(301, req.path + '/')
-      return
-    }
+
     if (req.method === 'OPTIONS') {
       res.sendStatus(204)
       return
     }
+
+    if (!req.path.endsWith('/')) {
+      res.redirect(301, req.path + '/')
+      return
+    }
+
     next()
   })
 
-  const SYSTEM_LOGIN = "b8d44289-d86a-471b-9f1d-aceec5c9e948"; 
+  const SYSTEM_LOGIN = "b8d44289-d86a-471b-9f1d-aceec5c9e948";
 
   app.get('/login/', (req, res) => {
     res.type('text/plain').send(SYSTEM_LOGIN)
   })
 
   app.get('/code/', (req, res) => {
-    const stream = createReadStream(import.meta.url.substring(7))
-    stream.pipe(res.type('text/plain'))
+    createReadStream(import.meta.url.substring(7)).pipe(res.type('text/plain'))
   })
 
   app.get('/sha1/:input/', (req, res) => {
-    const hash = crypto.createHash('sha1').update(req.params.input).digest('hex')
-    res.type('text/plain').send(hash)
+    res.type('text/plain').send(
+      crypto.createHash('sha1').update(req.params.input).digest('hex')
+    )
   })
 
   const fetch = addr =>
